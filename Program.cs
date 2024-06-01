@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Connect to MongoDB
 builder.Services.AddSingleton<MongoDbContext>();
 
+// Extension methods from Extensions/ServiceCollectionExtensions.cs
 builder.Services.AddCustomServices();
 builder.Services.AddCustomAutoMapper();
 
