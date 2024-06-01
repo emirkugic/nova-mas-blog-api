@@ -1,4 +1,3 @@
-#pragma warning disable CS0168 // To suppress the warning about the unused variable e in the catch block
 
 using Microsoft.AspNetCore.Mvc;
 using nova_mas_blog_api.DTOs.UserDTOs;
@@ -10,9 +9,9 @@ namespace nova_mas_blog_api.Controllers
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly UserService _userService;
 
-        public UsersController(IUserService userService)
+        public UsersController(UserService userService)
         {
             _userService = userService;
         }
@@ -20,7 +19,7 @@ namespace nova_mas_blog_api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var users = await _userService.GetUsers(page, pageSize);
+            var users = await _userService.GetAll(page, pageSize);
             var totalItems = users.Count();
             var response = new
             {
@@ -37,7 +36,7 @@ namespace nova_mas_blog_api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(string id)
         {
-            var user = await _userService.GetUserById(id);
+            var user = await _userService.GetById(id);
             if (user == null)
             {
                 return NotFound();
@@ -80,7 +79,7 @@ namespace nova_mas_blog_api.Controllers
             {
                 return Conflict(ex.Message);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "An error occurred while updating the user. Please try again later.");
             }
@@ -89,7 +88,7 @@ namespace nova_mas_blog_api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(string id)
         {
-            var success = await _userService.DeleteUser(id);
+            var success = await _userService.Delete(id);
             if (!success)
             {
                 return NotFound();

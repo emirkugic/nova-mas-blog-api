@@ -1,4 +1,5 @@
 using nova_mas_blog_api.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace nova_mas_blog_api.Extensions
 {
@@ -6,7 +7,7 @@ namespace nova_mas_blog_api.Extensions
     {
         public static IServiceCollection AddCustomServices(this IServiceCollection services)
         {
-            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<UserService>();
 
             return services;
         }
