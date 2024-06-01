@@ -5,6 +5,7 @@ using nova_mas_blog_api.Data;
 using nova_mas_blog_api.Models;
 using MongoDB.Driver;
 using nova_mas_blog_api.DTOs.UserDTOs;
+using AutoMapper;
 
 namespace nova_mas_blog_api.Controllers
 {
@@ -13,15 +14,14 @@ namespace nova_mas_blog_api.Controllers
     public class UsersController : ControllerBase
     {
         private readonly MongoDbContext _context;
+        private readonly IMapper _mapper;
 
-
-        public UsersController(MongoDbContext context)
+        public UsersController(MongoDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-
-        // http://localhost:5000/api/users?page=2&pageSize=5
         [HttpGet]
         public async Task<IActionResult> GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
@@ -40,7 +40,6 @@ namespace nova_mas_blog_api.Controllers
 
             return Ok(response);
         }
-
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(string id)
@@ -64,34 +63,20 @@ namespace nova_mas_blog_api.Controllers
                     return Conflict("A user with this email already exists.");
                 }
 
-                User user = new User
-                {
-                    FirstName = dto.FirstName,
-                    LastName = dto.LastName,
-                    Username = dto.Username,
-                    Email = dto.Email,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                    Role = dto.Role,
-                    IsEmailConfirmed = dto.IsEmailConfirmed,
-                    TwoFactorEnabled = dto.TwoFactorEnabled,
-                    TwoFactorSecret = dto.TwoFactorSecret,
-                    ProfilePictureUrl = dto.ProfilePictureUrl,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
+                var user = _mapper.Map<User>(dto);
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+                user.CreatedAt = DateTime.UtcNow;
+                user.UpdatedAt = DateTime.UtcNow;
 
                 await _context.Users.InsertOneAsync(user);
                 return StatusCode(201, "User created successfully.");
-
             }
-
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 return StatusCode(500, "An error occurred while creating the user. Please try again later.");
             }
         }
-
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UserUpdateDTO dto)
@@ -115,10 +100,7 @@ namespace nova_mas_blog_api.Controllers
                 }
 
                 // Update fields only if they are not null
-                userToUpdate.FirstName = dto.FirstName ?? userToUpdate.FirstName;
-                userToUpdate.LastName = dto.LastName ?? userToUpdate.LastName;
-                userToUpdate.Username = dto.Username ?? userToUpdate.Username;
-                userToUpdate.ProfilePictureUrl = dto.ProfilePictureUrl ?? userToUpdate.ProfilePictureUrl;
+                _mapper.Map(dto, userToUpdate);
 
                 if (dto.Password != null)
                 {
@@ -140,8 +122,6 @@ namespace nova_mas_blog_api.Controllers
                 return StatusCode(500, "An error occurred while updating the user. Please try again later.");
             }
         }
-
-
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(string id)

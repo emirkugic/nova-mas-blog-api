@@ -6,6 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Connect to MongoDB
 builder.Services.AddSingleton<MongoDbContext>();
 
+// AutoMapper for DTOs
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
