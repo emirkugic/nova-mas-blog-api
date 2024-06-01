@@ -1,11 +1,8 @@
 #pragma warning disable CS0168 // To suppress the warning about the unused variable e in the catch block
 
 using Microsoft.AspNetCore.Mvc;
-using nova_mas_blog_api.Data;
-using nova_mas_blog_api.Models;
-using MongoDB.Driver;
 using nova_mas_blog_api.DTOs.UserDTOs;
-using AutoMapper;
+using nova_mas_blog_api.Services;
 
 namespace nova_mas_blog_api.Controllers
 {
@@ -13,22 +10,18 @@ namespace nova_mas_blog_api.Controllers
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        private readonly MongoDbContext _context;
-        private readonly IMapper _mapper;
+        private readonly IUserService _userService;
 
-        public UsersController(MongoDbContext context, IMapper mapper)
+        public UsersController(IUserService userService)
         {
-            _context = context;
-            _mapper = mapper;
+            _userService = userService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var usersQuery = _context.Users.Find(_ => true);
-            var totalItems = await usersQuery.CountDocumentsAsync();
-            var users = await usersQuery.Skip((page - 1) * pageSize).Limit(pageSize).ToListAsync();
-
+            var users = await _userService.GetUsers(page, pageSize);
+            var totalItems = users.Count();
             var response = new
             {
                 TotalItems = totalItems,
@@ -44,7 +37,7 @@ namespace nova_mas_blog_api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(string id)
         {
-            var user = await _context.Users.Find<User>(u => u.Id == id).FirstOrDefaultAsync();
+            var user = await _userService.GetUserById(id);
             if (user == null)
             {
                 return NotFound();
@@ -57,19 +50,12 @@ namespace nova_mas_blog_api.Controllers
         {
             try
             {
-                var existingUser = await _context.Users.Find(u => u.Email == dto.Email).FirstOrDefaultAsync();
-                if (existingUser != null)
-                {
-                    return Conflict("A user with this email already exists.");
-                }
-
-                var user = _mapper.Map<User>(dto);
-                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-                user.CreatedAt = DateTime.UtcNow;
-                user.UpdatedAt = DateTime.UtcNow;
-
-                await _context.Users.InsertOneAsync(user);
-                return StatusCode(201, "User created successfully.");
+                var user = await _userService.CreateUser(dto);
+                return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
             }
             catch (Exception e)
             {
@@ -83,39 +69,16 @@ namespace nova_mas_blog_api.Controllers
         {
             try
             {
-                var userToUpdate = await _context.Users.Find(u => u.Id == id).FirstOrDefaultAsync();
-                if (userToUpdate == null)
-                {
-                    return NotFound("User not found.");
-                }
-
-                if (dto.Email != null && dto.Email != userToUpdate.Email)
-                {
-                    var existingUserWithEmail = await _context.Users.Find(u => u.Email == dto.Email && u.Id != id).FirstOrDefaultAsync();
-                    if (existingUserWithEmail != null)
-                    {
-                        return Conflict("Email is already in use by another account.");
-                    }
-                    userToUpdate.Email = dto.Email;
-                }
-
-                // Update fields only if they are not null
-                _mapper.Map(dto, userToUpdate);
-
-                if (dto.Password != null)
-                {
-                    userToUpdate.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-                }
-
-                userToUpdate.UpdatedAt = DateTime.UtcNow;
-
-                var result = await _context.Users.ReplaceOneAsync(u => u.Id == id, userToUpdate);
-                if (result.ModifiedCount == 0)
-                {
-                    return NotFound();
-                }
-
-                return StatusCode(201, "User updated successfully.");
+                var user = await _userService.UpdateUser(id, dto);
+                return Ok(user);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
             }
             catch (Exception ex)
             {
@@ -126,12 +89,12 @@ namespace nova_mas_blog_api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(string id)
         {
-            var result = await _context.Users.DeleteOneAsync(u => u.Id == id);
-            if (result.DeletedCount == 0)
+            var success = await _userService.DeleteUser(id);
+            if (!success)
             {
                 return NotFound();
             }
-            return StatusCode(204);
+            return NoContent();
         }
     }
 }

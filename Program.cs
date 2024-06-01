@@ -1,13 +1,14 @@
 using Microsoft.OpenApi.Models;
 using nova_mas_blog_api.Data;
+using nova_mas_blog_api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Connect to MongoDB
 builder.Services.AddSingleton<MongoDbContext>();
 
-// AutoMapper for DTOs
-builder.Services.AddAutoMapper(typeof(Program).Assembly);
+builder.Services.AddCustomServices();
+builder.Services.AddCustomAutoMapper();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
