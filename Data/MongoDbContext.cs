@@ -1,7 +1,7 @@
 using MongoDB.Driver;
 using nova_mas_blog_api.Models;
 
-namespace blog_website_api.Data
+namespace nova_mas_blog_api.Data
 {
     public class MongoDbContext
     {
@@ -9,8 +9,19 @@ namespace blog_website_api.Data
 
         public MongoDbContext(IConfiguration configuration)
         {
-            var client = new MongoClient(configuration.GetConnectionString("MongoDb"));
-            var databaseName = configuration.GetSection("MongoDb:DatabaseName").Value;
+            var connectionString = configuration.GetConnectionString("MongoDb");
+            var databaseName = configuration["ConnectionStrings:DatabaseName"];
+
+            // if (string.IsNullOrWhiteSpace(connectionString))
+            // {
+            //     throw new InvalidOperationException("MongoDB connection string is not configured.");
+            // }
+            // if (string.IsNullOrWhiteSpace(databaseName))
+            // {
+            //     throw new InvalidOperationException("MongoDB database name is not configured.");
+            // }
+
+            var client = new MongoClient(connectionString);
             _database = client.GetDatabase(databaseName);
         }
 
