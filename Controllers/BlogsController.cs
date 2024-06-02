@@ -3,6 +3,7 @@ using nova_mas_blog_api.Services;
 using nova_mas_blog_api.Models;
 using nova_mas_blog_api.DTOs;
 using nova_mas_blog_api.DTOs.BlogDTOs;
+using nova_mas_blog_api.Enums;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -122,4 +123,26 @@ public class BlogsController : ControllerBase
         if (!success) return NotFound();
         return NoContent();
     }
+
+    // ! ||--------------------------------------------------------------------------------||
+    // ! ||                                  Fancy Search                                  ||
+    // ! ||--------------------------------------------------------------------------------||
+
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchBlogs(
+    [FromQuery] string searchText = null!,
+    [FromQuery] BlogCategory? category = null,
+    [FromQuery] bool? isFeatured = null,
+    [FromQuery] string sortBy = "date",
+    [FromQuery] bool isAscending = true,
+    [FromQuery] string userId = null!,
+    [FromQuery] string nameSearch = null!,
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10)
+    {
+        var blogs = await _blogService.SearchBlogs(searchText, category, isFeatured, sortBy, isAscending, userId, nameSearch, page, pageSize);
+        return Ok(blogs);
+    }
+
+
 }
