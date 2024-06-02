@@ -21,6 +21,9 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 //* Extension method for Swagger
 builder.Services.AddSwaggerDocumentation();
 
+//* Extension method for rate limiting
+builder.Services.AddRateLimitingServices(builder.Configuration);
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -29,8 +32,8 @@ var app = builder.Build();
 //* Configure the HTTP request pipeline using the extension method
 app.ConfigurePipeline();
 
-
 app.UseHttpsRedirection();
+app.UseRateLimiting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
