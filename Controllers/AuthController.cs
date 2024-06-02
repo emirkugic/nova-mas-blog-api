@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using nova_mas_blog_api.DTOs.AuthDTO;
 using nova_mas_blog_api.Services;
-using System.Threading.Tasks;
 
 namespace nova_mas_blog_api.Controllers
 {
