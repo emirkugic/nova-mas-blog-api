@@ -23,37 +23,61 @@ namespace nova_mas_blog_api.Controllers
         // [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllUsers()
         {
-            var users = await _userService.GetAll(1, int.MaxValue);
-            return Ok(users);
+            try
+            {
+
+                var users = await _userService.GetAll(1, int.MaxValue);
+                return Ok(users);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "An error occurred while fetching the users. Please try again later.");
+            }
         }
 
         [HttpGet]
         // [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 12)
         {
-            var users = await _userService.GetAll(page, pageSize);
-            var totalItems = users.Count();
-            var response = new
+            try
             {
-                TotalItems = totalItems,
-                Page = page,
-                PageSize = pageSize,
-                TotalPages = (int)System.Math.Ceiling(totalItems / (double)pageSize),
-                Items = users
-            };
 
-            return Ok(response);
+                var users = await _userService.GetAll(page, pageSize);
+                var totalItems = users.Count();
+                var response = new
+                {
+                    TotalItems = totalItems,
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalPages = (int)System.Math.Ceiling(totalItems / (double)pageSize),
+                    Items = users
+                };
+
+                return Ok(response);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "An error occurred while fetching the users. Please try again later.");
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(string id)
         {
-            var user = await _userService.GetById(id);
-            if (user == null)
+            try
             {
-                return NotFound();
+
+                var user = await _userService.GetById(id);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                return Ok(user);
             }
-            return Ok(user);
+            catch (Exception)
+            {
+                return StatusCode(500, "An error occurred while fetching the user. Please try again later.");
+            }
         }
 
         [HttpPost]
@@ -69,9 +93,8 @@ namespace nova_mas_blog_api.Controllers
             {
                 return Conflict(ex.Message);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Console.WriteLine(e);
                 return StatusCode(500, "An error occurred while creating the user. Please try again later.");
             }
         }
@@ -101,12 +124,20 @@ namespace nova_mas_blog_api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(string id)
         {
-            var success = await _userService.Delete(id);
-            if (!success)
+            try
             {
-                return NotFound();
+
+                var success = await _userService.Delete(id);
+                if (!success)
+                {
+                    return NotFound();
+                }
+                return NoContent();
             }
-            return NoContent();
+            catch (Exception)
+            {
+                return StatusCode(500, "An error occurred while deleting the user. Please try again later.");
+            }
         }
     }
 }

@@ -20,25 +20,41 @@ namespace nova_mas_blog_api.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO registerDto)
         {
-            var result = await _authService.Register(registerDto);
-            if (!result)
+            try
             {
-                return BadRequest("User already exists.");
-            }
 
-            return StatusCode(201);
+                var result = await _authService.Register(registerDto);
+                if (!result)
+                {
+                    return BadRequest("User already exists.");
+                }
+
+                return StatusCode(201);
+            }
+            catch (Exception)
+            {
+                return BadRequest("Something went wrong. Please try again later.");
+            }
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
         {
-            var token = await _authService.Login(loginDto);
-            if (token == null)
+            try
             {
-                return Unauthorized("Invalid credentials.");
-            }
 
-            return Ok(new { Token = token });
+                var token = await _authService.Login(loginDto);
+                if (token == null)
+                {
+                    return Unauthorized("Invalid credentials.");
+                }
+
+                return Ok(new { Token = token });
+            }
+            catch (System.Exception)
+            {
+                return BadRequest("Something went wrong. Please try again later.");
+            }
         }
     }
 }
