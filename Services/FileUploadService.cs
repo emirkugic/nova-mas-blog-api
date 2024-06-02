@@ -4,11 +4,12 @@ using Amazon.S3.Model;
 public class FileUploadService
 {
     private readonly IAmazonS3 _s3Client;
-    private readonly string _bucketName = "nova-mas-blog-s3";
+    private readonly string _bucketName;
 
-    public FileUploadService(IAmazonS3 s3Client)
+    public FileUploadService(IAmazonS3 s3Client, IConfiguration configuration)
     {
         _s3Client = s3Client;
+        _bucketName = configuration["AWS:BucketName"]!;
     }
 
     public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType)
@@ -19,8 +20,7 @@ public class FileUploadService
             Key = fileName,
             InputStream = fileStream,
             ContentType = contentType,
-            AutoCloseStream = true,
-            CannedACL = S3CannedACL.PublicRead
+            AutoCloseStream = true
         };
 
         await _s3Client.PutObjectAsync(request);
