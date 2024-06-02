@@ -2,6 +2,7 @@ using nova_mas_blog_api.Extensions;
 using nova_mas_blog_api.Data;
 using nova_mas_blog_api.Middleware;
 
+// TODO: set up CORS policy before deployment to production
 
 var builder = WebApplication.CreateBuilder(args);
 
