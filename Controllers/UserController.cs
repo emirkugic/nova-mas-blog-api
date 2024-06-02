@@ -1,4 +1,5 @@
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using nova_mas_blog_api.DTOs.UserDTOs;
 using nova_mas_blog_api.Services;
@@ -7,6 +8,7 @@ namespace nova_mas_blog_api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly UserService _userService;
@@ -18,6 +20,7 @@ namespace nova_mas_blog_api.Controllers
 
 
         [HttpGet("all")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userService.GetAll(1, int.MaxValue);
@@ -25,6 +28,7 @@ namespace nova_mas_blog_api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 12)
         {
             var users = await _userService.GetAll(page, pageSize);
@@ -53,6 +57,7 @@ namespace nova_mas_blog_api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateUser([FromBody] UserCreateDTO dto)
         {
             try
