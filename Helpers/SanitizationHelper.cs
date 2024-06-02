@@ -7,8 +7,9 @@ public static class SanitizationHelper
         if (string.IsNullOrEmpty(input))
             return input;
 
-        string sanitizedInput = Regex.Replace(input, @"<script.*?>.*?</script>", string.Empty, RegexOptions.IgnoreCase);
-        sanitizedInput = Regex.Replace(sanitizedInput, @"[^\w\s\-@.]", string.Empty);
+        string sanitizedInput = Regex.Replace(input, @"<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>", string.Empty, RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        sanitizedInput = Regex.Replace(sanitizedInput, @"<[^>]+>", string.Empty);
+        sanitizedInput = Regex.Replace(sanitizedInput, @"[^\p{L}\p{Nd}\s\-.@]", string.Empty);
 
         return sanitizedInput;
     }

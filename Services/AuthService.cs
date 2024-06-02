@@ -27,6 +27,12 @@ namespace nova_mas_blog_api.Services
 
         public async Task<bool> Register(RegisterDTO registerDto)
         {
+            // Sanitize input data
+            registerDto.FirstName = SanitizationHelper.SanitizeInput(registerDto.FirstName);
+            registerDto.LastName = SanitizationHelper.SanitizeInput(registerDto.LastName);
+            registerDto.Username = SanitizationHelper.SanitizeInput(registerDto.Username);
+            registerDto.Email = SanitizationHelper.SanitizeInput(registerDto.Email);
+
             var userExists = await _context.Users.Find(x => x.Email == registerDto.Email).FirstOrDefaultAsync();
             if (userExists != null)
             {
@@ -48,6 +54,8 @@ namespace nova_mas_blog_api.Services
 
         public async Task<string> Login(LoginDTO loginDto)
         {
+            loginDto.Email = SanitizationHelper.SanitizeInput(loginDto.Email);
+
             var user = await _context.Users.Find(x => x.Email == loginDto.Email).FirstOrDefaultAsync();
             if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
             {
@@ -56,6 +64,7 @@ namespace nova_mas_blog_api.Services
 
             return GenerateJwtToken(user);
         }
+
 
         private string GenerateJwtToken(User user)
         {
