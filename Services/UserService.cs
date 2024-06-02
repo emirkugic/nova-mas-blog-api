@@ -17,13 +17,7 @@ namespace nova_mas_blog_api.Services
 
         public async Task<User> CreateUser(UserCreateDTO dto)
         {
-
-            // Sanitize input data
-            dto.FirstName = SanitizationHelper.SanitizeInput(dto.FirstName);
-            dto.LastName = SanitizationHelper.SanitizeInput(dto.LastName);
-            dto.Username = SanitizationHelper.SanitizeInput(dto.Username);
-            dto.Email = SanitizationHelper.SanitizeInput(dto.Email);
-
+            SanitizeUserDto(dto);
 
             var existingUser = await _collection.Find(u => u.Email == dto.Email).FirstOrDefaultAsync();
             if (existingUser != null)
@@ -42,8 +36,27 @@ namespace nova_mas_blog_api.Services
         public async Task<User> UpdateUser(string id, UserUpdateDTO dto)
         {
             var userToUpdate = await GetById(id);
+            SanitizeUserDto(dto);
 
-            // Sanitize input data
+            _mapper.Map(dto, userToUpdate);
+
+            if (dto.Password != null)
+            {
+                userToUpdate.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            }
+
+            userToUpdate.UpdatedAt = DateTime.UtcNow;
+
+            return await Update(id, userToUpdate);
+        }
+
+
+        // * ||--------------------------------------------------------------------------------||
+        // * ||                                 Helper method                                  ||
+        // * ||--------------------------------------------------------------------------------||
+
+        private void SanitizeUserDto(dynamic dto)
+        {
             if (dto.FirstName != null)
             {
                 dto.FirstName = SanitizationHelper.SanitizeInput(dto.FirstName);
@@ -60,17 +73,6 @@ namespace nova_mas_blog_api.Services
             {
                 dto.Email = SanitizationHelper.SanitizeInput(dto.Email);
             }
-
-            _mapper.Map(dto, userToUpdate);
-
-            if (dto.Password != null)
-            {
-                userToUpdate.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-            }
-
-            userToUpdate.UpdatedAt = DateTime.UtcNow;
-
-            return await Update(id, userToUpdate);
         }
     }
 }

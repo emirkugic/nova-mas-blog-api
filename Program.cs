@@ -1,6 +1,8 @@
 using nova_mas_blog_api.Extensions;
 using nova_mas_blog_api.Data;
 using nova_mas_blog_api.Middleware;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 //* Connect to MongoDB
@@ -23,8 +25,6 @@ builder.Services.AddSwaggerDocumentation();
 
 //* Extension method for rate limiting
 builder.Services.AddRateLimitingServices(builder.Configuration);
-
-
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
