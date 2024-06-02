@@ -1,6 +1,8 @@
 using nova_mas_blog_api.Extensions;
 using nova_mas_blog_api.Data;
 using nova_mas_blog_api.Middleware;
+using Newtonsoft.Json.Converters;
+using System.Text.Json.Serialization;
 
 // TODO: set up CORS policy before deployment to production
 
@@ -27,7 +29,11 @@ builder.Services.AddSwaggerDocumentation();
 //* Extension method for rate limiting
 builder.Services.AddRateLimitingServices(builder.Configuration);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
@@ -38,10 +44,10 @@ app.ConfigurePipeline();
 //* Middleware that blocks requests from specific countries to prevent spam
 app.UseMiddleware<CountryBlockingMiddleware>("./GeoLite2/GeoLite2-Country.mmdb");
 
-
 app.UseHttpsRedirection();
 app.UseRateLimiting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
 app.Run();

@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace nova_mas_blog_api.Extensions
 {
@@ -47,9 +49,28 @@ namespace nova_mas_blog_api.Extensions
                         new List<string>()
                     }
                 });
+
+                // Register the EnumSchemaFilter to display enums as strings
+                c.SchemaFilter<EnumSchemaFilter>();
+
             });
 
             return services;
+        }
+        public class EnumSchemaFilter : ISchemaFilter
+        {
+            public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+            {
+                if (context.Type.IsEnum)
+                {
+                    schema.Enum.Clear();
+                    foreach (var enumName in Enum.GetNames(context.Type))
+                    {
+                        schema.Enum.Add(new OpenApiString(enumName));
+                    }
+                    schema.Type = "string";
+                }
+            }
         }
     }
 }
