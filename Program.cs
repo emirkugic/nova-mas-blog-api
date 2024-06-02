@@ -3,22 +3,22 @@ using nova_mas_blog_api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Connect to MongoDB
+//* Connect to MongoDB
 builder.Services.AddSingleton<MongoDbContext>();
 
-// Extension methods for Services
+//* Extension methods for Services
 builder.Services.AddCustomServices();
 
-// AWS Services setup
+//* AWS Services setup
 builder.Services.AddAWSServices(builder.Configuration);
 
-// Extension method for AutoMapper
+//* Extension method for AutoMapper
 builder.Services.AddCustomAutoMapper();
 
-// Extension method for JWT authentication
+//* Extension method for JWT authentication
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
-// Extension method for Swagger
+//* Extension method for Swagger
 builder.Services.AddSwaggerDocumentation();
 
 builder.Services.AddControllers();
@@ -26,12 +26,9 @@ builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Nova Mas API V1"));
-}
+//* Configure the HTTP request pipeline using the extension method
+app.ConfigurePipeline();
+
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
