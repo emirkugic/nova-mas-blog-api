@@ -51,15 +51,6 @@ namespace nova_mas_blog_api.Services
                                     .ToListAsync();
         }
 
-        public async Task<IEnumerable<Blog>> GetBlogsByUserId(string userId, int page, int pageSize)
-        {
-            var filter = Builders<Blog>.Filter.Eq(blog => blog.user_id, userId);
-            return await _collection.Find(filter)
-                                    .Skip((page - 1) * pageSize)
-                                    .Limit(pageSize)
-                                    .ToListAsync();
-        }
-
 
         // ! ||--------------------------------------------------------------------------------||
         // ! ||                                  Fancy Search                                  ||

@@ -89,33 +89,6 @@ public class BlogsController : ControllerBase
     }
 
 
-    [HttpGet("by-user/{userId}")]
-    public async Task<IActionResult> GetBlogsByUserId(string userId, int page = 1, int pageSize = 10)
-    {
-        var blogs = await _blogService.GetBlogsByUserId(userId, page, pageSize);
-
-
-        var user = await _userService.GetById(userId);
-        string fullName = user != null ? $"{user.FirstName} {user.LastName}" : "Unknown User";
-
-
-        var blogDtos = blogs.Select(blog => new BlogReadDTO
-        {
-            Id = blog.Id!,
-            Title = blog.Title,
-            Content = blog.Content,
-            ImageUrls = blog.ImageUrls,
-            VideoUrls = blog.VideoUrls,
-            Category = blog.Category,
-            DateCreated = blog.DateCreated,
-            ViewCount = blog.ViewCount,
-            IsFeatured = blog.IsFeatured,
-            FullName = fullName
-        }).ToList();
-
-        return Ok(blogDtos);
-    }
-
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteBlog(string id)
     {
