@@ -25,7 +25,6 @@ namespace nova_mas_blog_api.Controllers
         {
             try
             {
-
                 var users = await _userService.GetAll(1, int.MaxValue);
                 return Ok(users);
             }
@@ -41,7 +40,6 @@ namespace nova_mas_blog_api.Controllers
         {
             try
             {
-
                 var users = await _userService.GetAll(page, pageSize);
                 var totalItems = users.Count();
                 var response = new
@@ -66,7 +64,6 @@ namespace nova_mas_blog_api.Controllers
         {
             try
             {
-
                 var user = await _userService.GetById(id);
                 if (user == null)
                 {
@@ -126,7 +123,6 @@ namespace nova_mas_blog_api.Controllers
         {
             try
             {
-
                 var success = await _userService.Delete(id);
                 if (!success)
                 {

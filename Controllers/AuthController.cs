@@ -22,7 +22,6 @@ namespace nova_mas_blog_api.Controllers
         {
             try
             {
-
                 var result = await _authService.Register(registerDto);
                 if (!result)
                 {
@@ -42,7 +41,6 @@ namespace nova_mas_blog_api.Controllers
         {
             try
             {
-
                 var token = await _authService.Login(loginDto);
                 if (token == null)
                 {
