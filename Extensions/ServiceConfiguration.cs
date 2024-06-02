@@ -1,5 +1,4 @@
 using nova_mas_blog_api.Services;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace nova_mas_blog_api.Extensions
 {
@@ -9,6 +8,7 @@ namespace nova_mas_blog_api.Extensions
         {
             services.AddScoped<UserService>();
             services.AddScoped<AuthService>();
+            services.AddScoped<BlogService>();
             services.AddScoped<FileUploadService>();
 
             return services;
