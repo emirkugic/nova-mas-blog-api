@@ -8,7 +8,7 @@ namespace nova_mas_blog_api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    // [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly UserService _userService;
@@ -35,23 +35,12 @@ namespace nova_mas_blog_api.Controllers
         }
 
         [HttpGet]
-        // [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 12)
+        public async Task<IActionResult> GetAllUsers(int page = 1, int pageSize = 10)
         {
             try
             {
-                var users = await _userService.GetAll(page, pageSize);
-                var totalItems = users.Count();
-                var response = new
-                {
-                    TotalItems = totalItems,
-                    Page = page,
-                    PageSize = pageSize,
-                    TotalPages = (int)System.Math.Ceiling(totalItems / (double)pageSize),
-                    Items = users
-                };
-
-                return Ok(response);
+                var users = await _userService.GetAllUsers(page, pageSize);
+                return Ok(users);
             }
             catch (Exception)
             {
@@ -59,12 +48,13 @@ namespace nova_mas_blog_api.Controllers
             }
         }
 
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(string id)
         {
             try
             {
-                var user = await _userService.GetById(id);
+                var user = await _userService.GetUserById(id);
                 if (user == null)
                 {
                     return NotFound();

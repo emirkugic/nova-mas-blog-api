@@ -15,6 +15,22 @@ namespace nova_mas_blog_api.Services
             _mapper = mapper;
         }
 
+
+        public async Task<List<UserReadDTO>> GetAllUsers(int page, int pageSize)
+        {
+            var users = await _collection.Find(_ => true)
+                .Skip((page - 1) * pageSize)
+                .Limit(pageSize)
+                .ToListAsync();
+            return _mapper.Map<List<UserReadDTO>>(users);
+        }
+
+        public async Task<UserReadDTO> GetUserById(string id)
+        {
+            var user = await _collection.Find(Builders<User>.Filter.Eq("Id", id)).FirstOrDefaultAsync();
+            return _mapper.Map<UserReadDTO>(user);
+        }
+
         public async Task<User> CreateUser(UserCreateDTO dto)
         {
             SanitizeUserDto(dto);
