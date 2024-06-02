@@ -1,5 +1,5 @@
-using nova_mas_blog_api.Data;
 using nova_mas_blog_api.Extensions;
+using nova_mas_blog_api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +8,9 @@ builder.Services.AddSingleton<MongoDbContext>();
 
 // Extension methods for Services
 builder.Services.AddCustomServices();
+
+// AWS Services setup
+builder.Services.AddAWSServices(builder.Configuration);
 
 // Extension method for AutoMapper
 builder.Services.AddCustomAutoMapper();
