@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using nova_mas_blog_api.Data;
@@ -7,21 +8,21 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
-using nova_mas_blog_api.Enums;
 
 namespace nova_mas_blog_api.Services
 {
     public class AuthService
     {
         private readonly MongoDbContext _context;
+        private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
 
-        public AuthService(MongoDbContext context, IConfiguration configuration)
+        public AuthService(MongoDbContext context, IConfiguration configuration, IMapper mapper)
         {
             _context = context;
             _configuration = configuration;
+            _mapper = mapper;
         }
 
         public async Task<bool> Register(RegisterDTO registerDto)
@@ -32,21 +33,14 @@ namespace nova_mas_blog_api.Services
                 return false;
             }
 
-            var user = new User
-            {
-                FirstName = registerDto.FirstName,
-                LastName = registerDto.LastName,
-                Username = registerDto.Username,
-                Email = registerDto.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
-                Role = UserRole.USER,
-                IsEmailConfirmed = false,
-                TwoFactorEnabled = false,
-                TwoFactorSecret = null!,
-                ProfilePictureUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/2048px-Default_pfp.svg.png",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+            var user = _mapper.Map<User>(registerDto);
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
+            user.CreatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
+            user.IsEmailConfirmed = false;
+            user.TwoFactorEnabled = false;
+            user.TwoFactorSecret = null!;
+            user.ProfilePictureUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/2048px-Default_pfp.svg.png";
 
             await _context.Users.InsertOneAsync(user);
             return true;
