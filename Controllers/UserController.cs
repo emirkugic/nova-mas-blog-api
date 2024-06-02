@@ -16,8 +16,16 @@ namespace nova_mas_blog_api.Controllers
             _userService = userService;
         }
 
+
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _userService.GetAll(1, int.MaxValue);
+            return Ok(users);
+        }
+
         [HttpGet]
-        public async Task<IActionResult> GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 12)
         {
             var users = await _userService.GetAll(page, pageSize);
             var totalItems = users.Count();

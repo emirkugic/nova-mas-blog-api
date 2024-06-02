@@ -1,3 +1,9 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using Microsoft.OpenApi.Models;
 using nova_mas_blog_api.Data;
 using nova_mas_blog_api.Extensions;
@@ -14,6 +20,21 @@ builder.Services.AddCustomAutoMapper();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
+// Add JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
 // Swagger configuration
 builder.Services.AddSwaggerGen(c =>
 {
@@ -29,6 +50,32 @@ builder.Services.AddSwaggerGen(c =>
             Url = new Uri("https://emirkugic.tech/")
         }
     });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                },
+                Scheme = "bearer",
+                In = ParameterLocation.Header,
+            },
+            new List<string>()
+        }
+    });
 });
 
 var app = builder.Build();
@@ -39,12 +86,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Blog API V1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Nova Mas API V1");
         c.RoutePrefix = "swagger";
     });
 }
 
 app.UseHttpsRedirection();
+
+// Enable authentication and authorization
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

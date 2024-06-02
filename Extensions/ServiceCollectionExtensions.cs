@@ -8,6 +8,7 @@ namespace nova_mas_blog_api.Extensions
         public static IServiceCollection AddCustomServices(this IServiceCollection services)
         {
             services.AddScoped<UserService>();
+            services.AddScoped<AuthService>();
 
             return services;
         }
