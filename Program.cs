@@ -1,6 +1,6 @@
 using nova_mas_blog_api.Extensions;
 using nova_mas_blog_api.Data;
-
+using nova_mas_blog_api.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
 //* Connect to MongoDB
@@ -24,6 +24,8 @@ builder.Services.AddSwaggerDocumentation();
 //* Extension method for rate limiting
 builder.Services.AddRateLimitingServices(builder.Configuration);
 
+
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -31,6 +33,10 @@ var app = builder.Build();
 
 //* Configure the HTTP request pipeline using the extension method
 app.ConfigurePipeline();
+
+//* Middleware that blocks requests from specific countries to prevent spam
+app.UseMiddleware<CountryBlockingMiddleware>("./GeoLite2/GeoLite2-Country.mmdb");
+
 
 app.UseHttpsRedirection();
 app.UseRateLimiting();
