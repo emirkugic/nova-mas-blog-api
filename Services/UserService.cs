@@ -17,6 +17,14 @@ namespace nova_mas_blog_api.Services
 
         public async Task<User> CreateUser(UserCreateDTO dto)
         {
+
+            // Sanitize input data
+            dto.FirstName = SanitizationHelper.SanitizeInput(dto.FirstName);
+            dto.LastName = SanitizationHelper.SanitizeInput(dto.LastName);
+            dto.Username = SanitizationHelper.SanitizeInput(dto.Username);
+            dto.Email = SanitizationHelper.SanitizeInput(dto.Email);
+
+
             var existingUser = await _collection.Find(u => u.Email == dto.Email).FirstOrDefaultAsync();
             if (existingUser != null)
             {
@@ -34,19 +42,23 @@ namespace nova_mas_blog_api.Services
         public async Task<User> UpdateUser(string id, UserUpdateDTO dto)
         {
             var userToUpdate = await GetById(id);
-            if (userToUpdate == null)
-            {
-                throw new KeyNotFoundException("User not found.");
-            }
 
-            if (dto.Email != null && dto.Email != userToUpdate.Email)
+            // Sanitize input data
+            if (dto.FirstName != null)
             {
-                var existingUserWithEmail = await _collection.Find(u => u.Email == dto.Email && u.Id != id).FirstOrDefaultAsync();
-                if (existingUserWithEmail != null)
-                {
-                    throw new InvalidOperationException("Email is already in use by another account.");
-                }
-                userToUpdate.Email = dto.Email;
+                dto.FirstName = SanitizationHelper.SanitizeInput(dto.FirstName);
+            }
+            if (dto.LastName != null)
+            {
+                dto.LastName = SanitizationHelper.SanitizeInput(dto.LastName);
+            }
+            if (dto.Username != null)
+            {
+                dto.Username = SanitizationHelper.SanitizeInput(dto.Username);
+            }
+            if (dto.Email != null)
+            {
+                dto.Email = SanitizationHelper.SanitizeInput(dto.Email);
             }
 
             _mapper.Map(dto, userToUpdate);
