@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using nova_mas_blog_api.Services;
 using nova_mas_blog_api.Models;
-using nova_mas_blog_api.DTOs;
 using nova_mas_blog_api.DTOs.BlogDTOs;
 using nova_mas_blog_api.Enums;
 

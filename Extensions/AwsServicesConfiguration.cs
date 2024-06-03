@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Amazon.S3;
 using Amazon.Extensions.NETCore.Setup;
 

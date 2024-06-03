@@ -1,6 +1,3 @@
-using nova_mas_blog_api.Enums;
-using System.ComponentModel.DataAnnotations;
-
 namespace nova_mas_blog_api.DTOs.UserDTOs
 {
     public class UserUpdateDTO

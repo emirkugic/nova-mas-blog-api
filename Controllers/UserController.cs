@@ -1,5 +1,3 @@
-
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using nova_mas_blog_api.DTOs.UserDTOs;
 using nova_mas_blog_api.Services;
