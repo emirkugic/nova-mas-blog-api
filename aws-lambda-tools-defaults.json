@@ -1,0 +1,18 @@
+{
+    "Information": [
+        {
+            "Value": "Use the .NET 8.0 runtime to create a Lambda function."
+        }
+    ],
+    "profile": "default",
+    "region": "us-east-1",
+    "configuration": "Release",
+    "framework": "net8.0",
+    "function-runtime": "dotnet8",
+    "function-memory-size": 256,
+    "function-timeout": 600,
+    "function-handler": "nova_mas_blog_api::nova_mas_blog_api.LambdaEntryPoint::FunctionHandlerAsync",
+    "function-name": "NovaMasBlogApiLambda",
+    "package-type": "Zip",
+    "function-role": "arn:aws:iam::891377016454:role/service-role/NovaMasBlogApiLambda-role-z7hl4c4j"
+}
