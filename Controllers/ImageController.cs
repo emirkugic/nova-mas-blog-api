@@ -14,6 +14,7 @@ public class ImagesController : ControllerBase
         _imageService = imageService;
     }
 
+    // Upload routes
     [HttpPost("upload")]
     public async Task<IActionResult> UploadImages([FromForm] ImageUploadDTO imageUploadDTO)
     {
@@ -64,7 +65,7 @@ public class ImagesController : ControllerBase
         return Created("api/images", uploadResults);
     }
 
-
+    // Get routes
     [HttpGet("{id}")]
     public async Task<IActionResult> GetImage(string id)
     {
@@ -86,37 +87,7 @@ public class ImagesController : ControllerBase
         return Ok(response);
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteImage(string id)
-    {
-        var image = await _imageService.GetById(id);
-        if (image == null)
-        {
-            return NotFound();
-        }
-
-        await _imageService.DeleteImagesAsync(new List<string> { image.DeleteHash });
-        var success = await _imageService.Delete(id);
-        if (!success)
-        {
-            return BadRequest("Failed to delete the image.");
-        }
-
-        return NoContent();
-    }
-
-    [HttpDelete("blog_id")]
-    public async Task<IActionResult> DeleteAllByBlogId(string blogId)
-    {
-        var success = await _imageService.DeleteAllByBlogId(blogId);
-        if (!success)
-        {
-            return BadRequest("Failed to delete the images.");
-        }
-        return NoContent();
-    }
-
-    [HttpGet("blog_id")]
+    [HttpGet("blog/{blogId}")]
     public async Task<IActionResult> GetByBlogId(string blogId)
     {
         var images = await _imageService.GetByBlogId(blogId);
@@ -137,6 +108,37 @@ public class ImagesController : ControllerBase
         return Ok(response);
     }
 
+    // Delete routes
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteImage(string id)
+    {
+        var image = await _imageService.GetById(id);
+        if (image == null)
+        {
+            return NotFound();
+        }
+
+        await _imageService.DeleteImagesAsync(new List<string> { image.DeleteHash });
+        var success = await _imageService.Delete(id);
+        if (!success)
+        {
+            return BadRequest("Failed to delete the image.");
+        }
+
+        return NoContent();
+    }
+
+    [HttpDelete("blog/{blogId}")]
+    public async Task<IActionResult> DeleteAllByBlogId(string blogId)
+    {
+        var success = await _imageService.DeleteAllByBlogId(blogId);
+        if (!success)
+        {
+            return BadRequest("Failed to delete the images.");
+        }
+        return NoContent();
+    }
+
     [HttpDelete("url")]
     public async Task<IActionResult> DeleteByImageUrl(string imageUrl)
     {
@@ -149,6 +151,4 @@ public class ImagesController : ControllerBase
         await _imageService.DeleteImagesAsync(new List<string> { image.DeleteHash });
         return NoContent();
     }
-
-
 }
