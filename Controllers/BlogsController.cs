@@ -112,9 +112,16 @@ public class BlogsController : ControllerBase
     [FromQuery] int page = 1,
     [FromQuery] int pageSize = 10)
     {
-        var blogs = await _blogService.SearchBlogs(searchText, category, isFeatured, sortBy, isAscending, userId, nameSearch, page, pageSize);
-        return Ok(blogs);
+        var (blogs, totalBlogs) = await _blogService.SearchBlogs(searchText, category, isFeatured, sortBy, isAscending, userId, nameSearch, page, pageSize);
+        var totalPages = (int)Math.Ceiling((double)totalBlogs / pageSize);
+
+        return Ok(new
+        {
+            Blogs = blogs,
+            TotalPages = totalPages
+        });
     }
+
 
 
 

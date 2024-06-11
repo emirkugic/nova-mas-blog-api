@@ -1,7 +1,6 @@
 using nova_mas_blog_api.Extensions;
 using nova_mas_blog_api.Data;
 using nova_mas_blog_api.Middleware;
-using Newtonsoft.Json.Converters;
 using System.Text.Json.Serialization;
 
 // TODO: set up CORS policy before deployment to production
@@ -36,6 +35,19 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 
+
+//* Setup CORS policy to allow all origins
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+
 var app = builder.Build();
 
 //* Configure the HTTP request pipeline using the extension method
@@ -48,6 +60,9 @@ app.UseHttpsRedirection();
 app.UseRateLimiting();
 app.UseAuthentication();
 app.UseAuthorization();
+//* Apply CORS policy
+app.UseCors("AllowAll");
+
 app.MapControllers();
 
 app.Run();

@@ -62,7 +62,12 @@ namespace nova_mas_blog_api.Services
         // ! ||                                  Fancy Search                                  ||
         // ! ||--------------------------------------------------------------------------------||
 
-        public async Task<IEnumerable<BlogReadDTO>> SearchBlogs(
+        public async Task<long> GetBlogsCount(FilterDefinition<Blog> filter)
+        {
+            return await _collection.CountDocumentsAsync(filter);
+        }
+
+        public async Task<(IEnumerable<BlogReadDTO>, long)> SearchBlogs(
             string searchText,
             BlogCategory? category,
             bool? isFeatured,
@@ -105,6 +110,8 @@ namespace nova_mas_blog_api.Services
                 .Limit(pageSize)
                 .ToListAsync();
 
+            var totalBlogs = await GetBlogsCount(filter);
+
             var userTasks = blogs.Select(b => _userService.GetUserById(b.user_id)).ToList();
             var userResults = await Task.WhenAll(userTasks);
             var blogDtos = blogs.Select((blog, index) => new BlogReadDTO
@@ -121,7 +128,7 @@ namespace nova_mas_blog_api.Services
                 FullName = userResults[index]?.FullName ?? "Unknown User"
             });
 
-            return blogDtos;
+            return (blogDtos, totalBlogs);
         }
 
         private SortDefinition<Blog> GetSortDefinition(string sortBy, bool isAscending)
