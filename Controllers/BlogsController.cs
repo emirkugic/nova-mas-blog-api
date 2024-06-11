@@ -3,6 +3,8 @@ using nova_mas_blog_api.Services;
 using nova_mas_blog_api.Models;
 using nova_mas_blog_api.DTOs.BlogDTOs;
 using nova_mas_blog_api.Enums;
+using SixLabors.ImageSharp;
+
 
 [Route("api/[controller]")]
 [ApiController]
@@ -57,11 +59,18 @@ public class BlogsController : ControllerBase
         List<byte[]> imageDatas = new List<byte[]>();
         foreach (var image in images)
         {
-            using (var ms = new MemoryStream())
-            {
-                await image.CopyToAsync(ms);
-                imageDatas.Add(ms.ToArray());
-            }
+            using var ms = new MemoryStream();
+            await image.CopyToAsync(ms);
+            ms.Position = 0; // Reset the memory stream position for reading
+
+            // Load the image using ImageSharp
+            using var img = Image.Load(ms);
+            using var outputStream = new MemoryStream();
+
+            // Convert to JPEG format
+            img.SaveAsJpeg(outputStream);
+            outputStream.Position = 0; // Reset the memory stream position for reading
+            imageDatas.Add(outputStream.ToArray());
         }
 
         var imgResults = await _imgurService.UploadImagesAsync(imageDatas);
