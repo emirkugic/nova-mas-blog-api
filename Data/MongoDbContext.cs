@@ -27,5 +27,6 @@ namespace nova_mas_blog_api.Data
 
         public IMongoCollection<User> Users => _database.GetCollection<User>("users");
         public IMongoCollection<Blog> Blogs => _database.GetCollection<Blog>("blogs");
+        public IMongoCollection<Image> Images => _database.GetCollection<Image>("images");
     }
 }

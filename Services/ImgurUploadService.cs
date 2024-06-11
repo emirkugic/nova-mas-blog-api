@@ -3,12 +3,12 @@ using Newtonsoft.Json.Linq;
 
 namespace nova_mas_blog_api.Services
 {
-    public class ImgurService
+    public class ImgurUploadService
     {
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
 
-        public ImgurService(IConfiguration configuration)
+        public ImgurUploadService(IConfiguration configuration)
         {
             _configuration = configuration;
             _httpClient = new HttpClient

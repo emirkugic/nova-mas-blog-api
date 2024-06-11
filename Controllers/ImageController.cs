@@ -1,40 +1,103 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using nova_mas_blog_api.Services;
+using nova_mas_blog_api.DTOs;
+using nova_mas_blog_api.Models;
+using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace nova_mas_blog_api.Controllers
+[Route("api/[controller]")]
+[ApiController]
+public class ImagesController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    [Authorize]
-    public class ImageController : ControllerBase
+    private readonly ImageService _imageService;
+
+    public ImagesController(ImageService imageService)
     {
-        private readonly FileUploadService _fileUploadService;
+        _imageService = imageService;
+    }
 
-        public ImageController(FileUploadService fileUploadService)
+    [HttpPost("upload")]
+    public async Task<IActionResult> UploadImage([FromForm] ImageUploadDTO imageUploadDTO)
+    {
+        var imageFile = imageUploadDTO.ImageFile;
+        if (imageFile == null || imageFile.Length == 0)
         {
-            _fileUploadService = fileUploadService;
+            return BadRequest("No image file provided.");
         }
 
+        using var stream = new MemoryStream();
+        await imageFile.CopyToAsync(stream);
+        var imageData = stream.ToArray();
 
-        [HttpPost("upload-profile-picture")]
-        public async Task<IActionResult> UploadProfilePicture(IFormFile file)
+        var uploadedImages = await _imageService.UploadImagesAsync(new List<byte[]> { imageData });
+        var uploadedImage = uploadedImages.FirstOrDefault();
+
+        if (uploadedImage == default)
         {
-            if (file == null || file.Length == 0)
-                return BadRequest("No file uploaded.");
-
-            var fileName = Path.Combine("profiles", Guid.NewGuid().ToString() + Path.GetExtension(file.FileName));
-            using (var stream = file.OpenReadStream())
-            {
-                var url = await _fileUploadService.UploadFileAsync(stream, fileName, file.ContentType);
-                return Ok(new { Message = "File uploaded successfully.", Url = url });
-            }
+            return BadRequest("Image upload failed.");
         }
 
-        [HttpDelete("delete-profile-picture/{fileName}")]
-        public async Task<IActionResult> DeleteProfilePicture(string fileName)
+        var image = new Image
         {
-            await _fileUploadService.DeleteFileAsync(fileName);
-            return NoContent();
+            Url = uploadedImage.ImageUrl,
+            DeleteHash = uploadedImage.DeleteHash,
+            UploadDate = DateTime.UtcNow,
+            BlogId = imageUploadDTO.BlogId
+        };
+
+        await _imageService.Create(image);
+
+        var response = new ImageResponseDTO
+        {
+            Id = image.Id,
+            Url = image.Url,
+            DeleteHash = image.DeleteHash,
+            UploadDate = image.UploadDate,
+            BlogId = image.BlogId
+        };
+
+        return CreatedAtAction(nameof(GetImage), new { id = image.Id }, response);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetImage(string id)
+    {
+        var image = await _imageService.GetById(id);
+        if (image == null)
+        {
+            return NotFound();
         }
+
+        var response = new ImageResponseDTO
+        {
+            Id = image.Id,
+            Url = image.Url,
+            DeleteHash = image.DeleteHash,
+            UploadDate = image.UploadDate,
+            BlogId = image.BlogId
+        };
+
+        return Ok(response);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteImage(string id)
+    {
+        var image = await _imageService.GetById(id);
+        if (image == null)
+        {
+            return NotFound();
+        }
+
+        await _imageService.DeleteImagesAsync(new List<string> { image.DeleteHash });
+        var success = await _imageService.Delete(id);
+        if (!success)
+        {
+            return BadRequest("Failed to delete the image.");
+        }
+
+        return NoContent();
     }
 }

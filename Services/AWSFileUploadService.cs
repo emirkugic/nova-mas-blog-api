@@ -1,12 +1,12 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 
-public class FileUploadService
+public class AWSFileUploadService
 {
     private readonly IAmazonS3 _s3Client;
     private readonly string _bucketName;
 
-    public FileUploadService(IAmazonS3 s3Client, IConfiguration configuration)
+    public AWSFileUploadService(IAmazonS3 s3Client, IConfiguration configuration)
     {
         _s3Client = s3Client;
         _bucketName = configuration["AWS:BucketName"]!;

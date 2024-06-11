@@ -12,9 +12,9 @@ public class BlogsController : ControllerBase
 {
     private readonly BlogService _blogService;
     private readonly UserService _userService;
-    private readonly ImgurService _imgurService;
+    private readonly ImgurUploadService _imgurService;
 
-    public BlogsController(BlogService blogService, UserService userService, ImgurService imgurService)
+    public BlogsController(BlogService blogService, UserService userService, ImgurUploadService imgurService)
     {
         _blogService = blogService;
         _userService = userService;
@@ -64,7 +64,7 @@ public class BlogsController : ControllerBase
             ms.Position = 0; // Reset the memory stream position for reading
 
             // Load the image using ImageSharp
-            using var img = Image.Load(ms);
+            using var img = SixLabors.ImageSharp.Image.Load(ms);
             using var outputStream = new MemoryStream();
 
             // Convert to JPEG format
