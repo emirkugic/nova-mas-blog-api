@@ -10,6 +10,7 @@ namespace nova_mas_blog_api.Extensions
             services.AddScoped<AuthService>();
             services.AddScoped<BlogService>();
             services.AddScoped<FileUploadService>();
+            services.AddScoped<ImgurService>();
 
             return services;
         }

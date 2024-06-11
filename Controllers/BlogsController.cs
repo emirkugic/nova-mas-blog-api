@@ -10,11 +10,13 @@ public class BlogsController : ControllerBase
 {
     private readonly BlogService _blogService;
     private readonly UserService _userService;
+    private readonly ImgurService _imgurService;
 
-    public BlogsController(BlogService blogService, UserService userService)
+    public BlogsController(BlogService blogService, UserService userService, ImgurService imgurService)
     {
         _blogService = blogService;
         _userService = userService;
+        _imgurService = imgurService;
     }
 
     [HttpGet]
@@ -30,7 +32,7 @@ public class BlogsController : ControllerBase
         var blog = await _blogService.GetById(id);
         if (blog == null) return NotFound();
 
-        var user = await _userService.GetById(blog.user_id);
+        var user = await _userService.GetById(blog.UserId);
         string fullName = user != null ? $"{user.FirstName} {user.LastName}" : "Unknown User";
 
         var blogDto = new BlogReadDTO
@@ -39,7 +41,6 @@ public class BlogsController : ControllerBase
             Title = blog.Title,
             Content = blog.Content,
             ImageUrls = blog.ImageUrls,
-            VideoUrls = blog.VideoUrls,
             Category = blog.Category,
             DateCreated = blog.DateCreated,
             ViewCount = blog.ViewCount,
@@ -51,16 +52,28 @@ public class BlogsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateBlog([FromBody] BlogCreateDTO blogDto)
+    public async Task<IActionResult> CreateBlog([FromForm] BlogCreateDTO blogDto, [FromForm] List<IFormFile> images)
     {
+        List<byte[]> imageDatas = new List<byte[]>();
+        foreach (var image in images)
+        {
+            using (var ms = new MemoryStream())
+            {
+                await image.CopyToAsync(ms);
+                imageDatas.Add(ms.ToArray());
+            }
+        }
+
+        var imgResults = await _imgurService.UploadImagesAsync(imageDatas);
+
         var blog = new Blog
         {
             Title = blogDto.Title,
             Content = blogDto.Content,
-            ImageUrls = blogDto.ImageUrls,
-            VideoUrls = blogDto.VideoUrls,
+            ImageUrls = imgResults.Select(x => x.ImageUrl).ToList(),
+            DeleteHashes = imgResults.Select(x => x.DeleteHash).ToList(),
             Category = blogDto.Category,
-            user_id = blogDto.UserId,
+            UserId = blogDto.UserId,
             DateCreated = DateTime.UtcNow,
             ViewCount = 0,
             IsFeatured = false
@@ -68,6 +81,8 @@ public class BlogsController : ControllerBase
         await _blogService.Create(blog);
         return CreatedAtAction(nameof(GetBlog), new { id = blog.Id }, blog);
     }
+
+
 
 
 
@@ -80,7 +95,6 @@ public class BlogsController : ControllerBase
         blog.Title = blogDto.Title;
         blog.Content = blogDto.Content;
         blog.ImageUrls = blogDto.ImageUrls;
-        blog.VideoUrls = blogDto.VideoUrls;
         blog.Category = blogDto.Category;
 
         await _blogService.Update(id, blog);
@@ -91,10 +105,17 @@ public class BlogsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteBlog(string id)
     {
+        var blog = await _blogService.GetById(id);
+        if (blog == null) return NotFound();
+
+        // Delete images from Imgur
+        await _imgurService.DeleteImagesAsync(blog.DeleteHashes);
+
         var success = await _blogService.Delete(id);
         if (!success) return NotFound();
         return NoContent();
     }
+
 
     // ! ||--------------------------------------------------------------------------------||
     // ! ||                                  Fancy Search                                  ||

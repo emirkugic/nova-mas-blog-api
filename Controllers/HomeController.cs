@@ -7,8 +7,8 @@ namespace nova_mas_blog_api.Controllers
         [HttpGet("/")]
         public IActionResult Index()
         {
-            return Content("Welcome to the Nova Mas Blog API. Use /swagger to access the API documentation.");
-            // return Redirect("/swagger");
+            // return Content("Welcome to the Nova Mas Blog API. Use /swagger to access the API documentation.");
+            return Redirect("/swagger");
         }
     }
 }

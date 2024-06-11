@@ -18,7 +18,7 @@ namespace nova_mas_blog_api.Services
 
         public async Task<IEnumerable<Blog>> GetByUserId(string userId, int page, int pageSize)
         {
-            return await _collection.Find(blog => blog.user_id == userId)
+            return await _collection.Find(blog => blog.UserId == userId)
                 .Skip((page - 1) * pageSize)
                 .Limit(pageSize)
                 .ToListAsync();
@@ -112,7 +112,7 @@ namespace nova_mas_blog_api.Services
 
             var totalBlogs = await GetBlogsCount(filter);
 
-            var userTasks = blogs.Select(b => _userService.GetUserById(b.user_id)).ToList();
+            var userTasks = blogs.Select(b => _userService.GetUserById(b.UserId)).ToList();
             var userResults = await Task.WhenAll(userTasks);
             var blogDtos = blogs.Select((blog, index) => new BlogReadDTO
             {
@@ -120,7 +120,6 @@ namespace nova_mas_blog_api.Services
                 Title = blog.Title,
                 Content = blog.Content,
                 ImageUrls = blog.ImageUrls,
-                VideoUrls = blog.VideoUrls,
                 Category = blog.Category,
                 DateCreated = blog.DateCreated,
                 ViewCount = blog.ViewCount,

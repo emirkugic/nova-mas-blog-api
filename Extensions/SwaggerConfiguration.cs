@@ -51,6 +51,8 @@ namespace nova_mas_blog_api.Extensions
 
                 // Register the EnumSchemaFilter to display enums as strings
                 c.SchemaFilter<EnumSchemaFilter>();
+                // Register the file upload operation filter
+                c.OperationFilter<FileUploadOperation>();
 
             });
 

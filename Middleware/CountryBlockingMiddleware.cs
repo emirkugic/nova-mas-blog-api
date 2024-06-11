@@ -121,7 +121,7 @@ namespace nova_mas_blog_api.Middleware
                 "TJ", // Tajikistan
                 "TZ", // Tanzania
                 "TH", // Thailand
-                "TG", // Togo
+                // "TG", // Togo
                 "TN", // Tunisia
                 "TR", // Turkey
                 "TM", // Turkmenistan

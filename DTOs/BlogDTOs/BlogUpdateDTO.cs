@@ -8,7 +8,6 @@ namespace nova_mas_blog_api.DTOs.BlogDTOs
         public required string Title { get; set; }
         public required string Content { get; set; }
         public required List<string> ImageUrls { get; set; }
-        public required List<string> VideoUrls { get; set; }
         public BlogCategory Category { get; set; }
     }
 }
