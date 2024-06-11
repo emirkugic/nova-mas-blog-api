@@ -1,11 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using nova_mas_blog_api.Services;
 using nova_mas_blog_api.DTOs;
-using nova_mas_blog_api.Models;
-using Microsoft.AspNetCore.Http;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
+using SixLabors.ImageSharp;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -19,47 +15,55 @@ public class ImagesController : ControllerBase
     }
 
     [HttpPost("upload")]
-    public async Task<IActionResult> UploadImage([FromForm] ImageUploadDTO imageUploadDTO)
+    public async Task<IActionResult> UploadImages([FromForm] ImageUploadDTO imageUploadDTO)
     {
-        var imageFile = imageUploadDTO.ImageFile;
-        if (imageFile == null || imageFile.Length == 0)
+        if (imageUploadDTO.ImageFiles == null || !imageUploadDTO.ImageFiles.Any())
         {
-            return BadRequest("No image file provided.");
+            return BadRequest("No image files provided.");
         }
 
-        using var stream = new MemoryStream();
-        await imageFile.CopyToAsync(stream);
-        var imageData = stream.ToArray();
+        var uploadResults = new List<ImageResponseDTO>();
 
-        var uploadedImages = await _imageService.UploadImagesAsync(new List<byte[]> { imageData });
-        var uploadedImage = uploadedImages.FirstOrDefault();
-
-        if (uploadedImage == default)
+        foreach (var file in imageUploadDTO.ImageFiles)
         {
-            return BadRequest("Image upload failed.");
+            using var imageStream = file.OpenReadStream();
+            using var image = SixLabors.ImageSharp.Image.Load(imageStream);
+            using var ms = new MemoryStream();
+            image.SaveAsJpeg(ms);
+            ms.Position = 0;
+            var imageData = ms.ToArray();
+
+            var uploadedImages = await _imageService.UploadImagesAsync(new List<byte[]> { imageData });
+            var uploadedImage = uploadedImages.FirstOrDefault();
+
+            if (uploadedImage == default)
+            {
+                return BadRequest("Image upload failed for one or more images.");
+            }
+
+            var imageRecord = new nova_mas_blog_api.Models.Image
+            {
+                Url = uploadedImage.ImageUrl,
+                DeleteHash = uploadedImage.DeleteHash,
+                UploadDate = DateTime.UtcNow,
+                BlogId = imageUploadDTO.BlogId
+            };
+
+            await _imageService.Create(imageRecord);
+
+            uploadResults.Add(new ImageResponseDTO
+            {
+                Id = imageRecord.Id!,
+                Url = imageRecord.Url,
+                DeleteHash = imageRecord.DeleteHash,
+                UploadDate = imageRecord.UploadDate,
+                BlogId = imageRecord.BlogId
+            });
         }
 
-        var image = new Image
-        {
-            Url = uploadedImage.ImageUrl,
-            DeleteHash = uploadedImage.DeleteHash,
-            UploadDate = DateTime.UtcNow,
-            BlogId = imageUploadDTO.BlogId
-        };
-
-        await _imageService.Create(image);
-
-        var response = new ImageResponseDTO
-        {
-            Id = image.Id,
-            Url = image.Url,
-            DeleteHash = image.DeleteHash,
-            UploadDate = image.UploadDate,
-            BlogId = image.BlogId
-        };
-
-        return CreatedAtAction(nameof(GetImage), new { id = image.Id }, response);
+        return Created("api/images", uploadResults);
     }
+
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetImage(string id)
@@ -72,7 +76,7 @@ public class ImagesController : ControllerBase
 
         var response = new ImageResponseDTO
         {
-            Id = image.Id,
+            Id = image.Id!,
             Url = image.Url,
             DeleteHash = image.DeleteHash,
             UploadDate = image.UploadDate,
@@ -100,4 +104,51 @@ public class ImagesController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpDelete("blog_id")]
+    public async Task<IActionResult> DeleteAllByBlogId(string blogId)
+    {
+        var success = await _imageService.DeleteAllByBlogId(blogId);
+        if (!success)
+        {
+            return BadRequest("Failed to delete the images.");
+        }
+        return NoContent();
+    }
+
+    [HttpGet("blog_id")]
+    public async Task<IActionResult> GetByBlogId(string blogId)
+    {
+        var images = await _imageService.GetByBlogId(blogId);
+        if (images == null)
+        {
+            return NotFound();
+        }
+
+        var response = images.Select(image => new ImageResponseDTO
+        {
+            Id = image.Id!,
+            Url = image.Url,
+            DeleteHash = image.DeleteHash,
+            UploadDate = image.UploadDate,
+            BlogId = image.BlogId
+        });
+
+        return Ok(response);
+    }
+
+    [HttpDelete("url")]
+    public async Task<IActionResult> DeleteByImageUrl(string imageUrl)
+    {
+        var image = await _imageService.DeleteByImageUrl(imageUrl);
+        if (image == null)
+        {
+            return NotFound();
+        }
+
+        await _imageService.DeleteImagesAsync(new List<string> { image.DeleteHash });
+        return NoContent();
+    }
+
+
 }

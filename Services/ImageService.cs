@@ -13,6 +13,8 @@ namespace nova_mas_blog_api.Services
             _imgurService = imgurService;
         }
 
+
+
         public async Task<List<(string ImageUrl, string DeleteHash)>> UploadImagesAsync(List<byte[]> imagesData)
         {
             return await _imgurService.UploadImagesAsync(imagesData);
@@ -45,6 +47,13 @@ namespace nova_mas_blog_api.Services
             // Now delete the documents from MongoDB
             var deleteResult = await _collection.DeleteManyAsync(Builders<Image>.Filter.Eq("BlogId", blogId));
             return deleteResult.DeletedCount > 0;
+        }
+
+
+        public async Task<Image> DeleteByImageUrl(string image_url)
+        {
+            var image = await _collection.FindOneAndDeleteAsync(Builders<Image>.Filter.Eq("Url", image_url));
+            return image;
         }
     }
 }

@@ -18,6 +18,7 @@ namespace nova_mas_blog_api.Services
             };
         }
 
+        // TODO: refactor: convert to JPEG before uploading in ImgurUploadService instead of ImageController
         public async Task<List<(string ImageUrl, string DeleteHash)>> UploadImagesAsync(List<byte[]> imagesData)
         {
             var results = new List<(string ImageUrl, string DeleteHash)>();
