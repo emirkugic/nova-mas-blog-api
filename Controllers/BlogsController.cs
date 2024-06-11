@@ -3,7 +3,6 @@ using nova_mas_blog_api.Services;
 using nova_mas_blog_api.Models;
 using nova_mas_blog_api.DTOs.BlogDTOs;
 using nova_mas_blog_api.Enums;
-using SixLabors.ImageSharp;
 
 
 [Route("api/[controller]")]
@@ -12,13 +11,11 @@ public class BlogsController : ControllerBase
 {
     private readonly BlogService _blogService;
     private readonly UserService _userService;
-    private readonly ImgurUploadService _imgurService;
 
-    public BlogsController(BlogService blogService, UserService userService, ImgurUploadService imgurService)
+    public BlogsController(BlogService blogService, UserService userService)
     {
         _blogService = blogService;
         _userService = userService;
-        _imgurService = imgurService;
     }
 
     [HttpGet]
@@ -42,7 +39,6 @@ public class BlogsController : ControllerBase
             Id = blog.Id!,
             Title = blog.Title,
             Content = blog.Content,
-            ImageUrls = blog.ImageUrls,
             Category = blog.Category,
             DateCreated = blog.DateCreated,
             ViewCount = blog.ViewCount,
@@ -54,33 +50,12 @@ public class BlogsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateBlog([FromForm] BlogCreateDTO blogDto, [FromForm] List<IFormFile> images)
+    public async Task<IActionResult> CreateBlog([FromForm] BlogCreateDTO blogDto)
     {
-        List<byte[]> imageDatas = new List<byte[]>();
-        foreach (var image in images)
-        {
-            using var ms = new MemoryStream();
-            await image.CopyToAsync(ms);
-            ms.Position = 0; // Reset the memory stream position for reading
-
-            // Load the image using ImageSharp
-            using var img = SixLabors.ImageSharp.Image.Load(ms);
-            using var outputStream = new MemoryStream();
-
-            // Convert to JPEG format
-            img.SaveAsJpeg(outputStream);
-            outputStream.Position = 0; // Reset the memory stream position for reading
-            imageDatas.Add(outputStream.ToArray());
-        }
-
-        var imgResults = await _imgurService.UploadImagesAsync(imageDatas);
-
         var blog = new Blog
         {
             Title = blogDto.Title,
             Content = blogDto.Content,
-            ImageUrls = imgResults.Select(x => x.ImageUrl).ToList(),
-            DeleteHashes = imgResults.Select(x => x.DeleteHash).ToList(),
             Category = blogDto.Category,
             UserId = blogDto.UserId,
             DateCreated = DateTime.UtcNow,
@@ -103,7 +78,6 @@ public class BlogsController : ControllerBase
 
         blog.Title = blogDto.Title;
         blog.Content = blogDto.Content;
-        blog.ImageUrls = blogDto.ImageUrls;
         blog.Category = blogDto.Category;
 
         await _blogService.Update(id, blog);
@@ -116,9 +90,6 @@ public class BlogsController : ControllerBase
     {
         var blog = await _blogService.GetById(id);
         if (blog == null) return NotFound();
-
-        // Delete images from Imgur
-        await _imgurService.DeleteImagesAsync(blog.DeleteHashes);
 
         var success = await _blogService.Delete(id);
         if (!success) return NotFound();

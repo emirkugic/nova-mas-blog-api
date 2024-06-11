@@ -119,7 +119,6 @@ namespace nova_mas_blog_api.Services
                 Id = blog.Id!,
                 Title = blog.Title,
                 Content = blog.Content,
-                ImageUrls = blog.ImageUrls,
                 Category = blog.Category,
                 DateCreated = blog.DateCreated,
                 ViewCount = blog.ViewCount,
